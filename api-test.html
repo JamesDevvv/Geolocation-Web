@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Endpoint Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .endpoint {
+            border: 1px solid #ddd;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+        .endpoint h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .pending { background: #fff3cd; color: #856404; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        .response {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .input-group {
+            margin: 10px 0;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .input-group input {
+            width: 200px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .credentials {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Laravel API Endpoint Tester</h1>
+    
+    <div class="credentials">
+        <h3>Test Credentials</h3>
+        <p><strong>Email:</strong> test1@example.com</p>
+        <p><strong>Password:</strong> password123</p>
+        <p><strong>Backend URL:</strong> http://127.0.0.1:8000</p>
+    </div>
+
+    <div class="container">
+        <h2>Authentication Status</h2>
+        <p>Token: <span id="tokenStatus">Not logged in</span></p>
+        <button onclick="clearToken()">Clear Token</button>
+    </div>
+
+    <div class="container">
+        <div class="endpoint">
+            <h3>1. POST /api/login <span id="login-status" class="status pending">Not tested</span></h3>
+            <div class="input-group">
+                <label>Email:</label>
+                <input type="email" id="loginEmail" value="test1@example.com">
+            </div>
+            <div class="input-group">
+                <label>Password:</label>
+                <input type="password" id="loginPassword" value="password123">
+            </div>
+            <button onclick="testLogin()">Test Login</button>
+            <div id="login-response" class="response" style="display:none;"></div>
+        </div>
+
+        <div class="endpoint">
+            <h3>2. GET /api/me <span id="me-status" class="status pending">Not tested</span></h3>
+            <button onclick="testMe()">Test Me</button>
+            <div id="me-response" class="response" style="display:none;"></div>
+        </div>
+
+        <div class="endpoint">
+            <h3>3. GET /api/home <span id="home-status" class="status pending">Not tested</span></h3>
+            <button onclick="testHome()">Test Home</button>
+            <div id="home-response" class="response" style="display:none;"></div>
+        </div>
+
+        <div class="endpoint">
+            <h3>4. POST /api/search-ip <span id="search-status" class="status pending">Not tested</span></h3>
+            <div class="input-group">
+                <label>IP Address:</label>
+                <input type="text" id="searchIp" value="8.8.8.8">
+            </div>
+            <button onclick="testSearchIp()">Test Search IP</button>
+            <div id="search-response" class="response" style="display:none;"></div>
+        </div>
+
+        <div class="endpoint">
+            <h3>5. GET /api/clear-search <span id="clear-status" class="status pending">Not tested</span></h3>
+            <button onclick="testClearSearch()">Test Clear Search</button>
+            <div id="clear-response" class="response" style="display:none;"></div>
+        </div>
+
+        <div class="endpoint">
+            <h3>6. GET /api/history <span id="history-status" class="status pending">Not tested</span></h3>
+            <button onclick="testHistory()">Test History</button>
+            <div id="history-response" class="response" style="display:none;"></div>
+        </div>
+
+        <div class="endpoint">
+            <h3>7. GET /api/history/{id} <span id="history-item-status" class="status pending">Not tested</span></h3>
+            <div class="input-group">
+                <label>History ID:</label>
+                <input type="text" id="historyId" value="1">
+            </div>
+            <button onclick="testHistoryItem()">Test History Item</button>
+            <div id="history-item-response" class="response" style="display:none;"></div>
+        </div>
+
+        <div class="endpoint">
+            <h3>8. POST /api/history-delete <span id="delete-status" class="status pending">Not tested</span></h3>
+            <div class="input-group">
+                <label>IDs to Delete (comma-separated):</label>
+                <input type="text" id="deleteIds" value="1,2">
+            </div>
+            <button onclick="testDeleteHistories()">Test Delete Histories</button>
+            <div id="delete-response" class="response" style="display:none;"></div>
+        </div>
+
+        <div class="endpoint">
+            <h3>9. POST /api/logout <span id="logout-status" class="status pending">Not tested</span></h3>
+            <button onclick="testLogout()">Test Logout</button>
+            <div id="logout-response" class="response" style="display:none;"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Quick Test All</h2>
+        <button onclick="testAllEndpoints()">Test All Endpoints (Sequential)</button>
+        <div id="overall-status"></div>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://127.0.0.1:8000';
+        let authToken = localStorage.getItem('auth_token');
+
+        function updateTokenStatus() {
+            document.getElementById('tokenStatus').textContent = authToken ? `Present: ${authToken.substring(0, 20)}...` : 'Not logged in';
+        }
+
+        function clearToken() {
+            authToken = null;
+            localStorage.removeItem('auth_token');
+            updateTokenStatus();
+        }
+
+        function setStatus(endpoint, status, isSuccess) {
+            const statusEl = document.getElementById(`${endpoint}-status`);
+            statusEl.textContent = status;
+            statusEl.className = `status ${isSuccess ? 'success' : 'error'}`;
+        }
+
+        function showResponse(endpoint, response) {
+            const responseEl = document.getElementById(`${endpoint}-response`);
+            responseEl.style.display = 'block';
+            responseEl.textContent = JSON.stringify(response, null, 2);
+        }
+
+        async function makeRequest(method, url, data = null, requiresAuth = false) {
+            const headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            };
+
+            if (requiresAuth && authToken) {
+                headers['Authorization'] = `Bearer ${authToken}`;
+            }
+
+            const config = {
+                method,
+                headers,
+                mode: 'cors'
+            };
+
+            if (data) {
+                config.body = JSON.stringify(data);
+            }
+
+            const response = await fetch(url, config);
+            const responseData = await response.json().catch(() => ({ error: 'Invalid JSON response' }));
+            
+            return {
+                ok: response.ok,
+                status: response.status,
+                data: responseData,
+                headers: Object.fromEntries(response.headers.entries())
+            };
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            // Get user's IP first
+            let userIP = null;
+            try {
+                const ipResponse = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipResponse.json();
+                userIP = ipData.ip;
+            } catch (e) {
+                console.warn('Could not get user IP:', e);
+            }
+
+            const loginData = { email, password };
+            if (userIP) {
+                loginData.ip = userIP;
+            }
+
+            try {
+                const result = await makeRequest('POST', `${BASE_URL}/api/login`, loginData);
+                
+                if (result.ok) {
+                    // Extract token from response
+                    authToken = result.data.token || result.data.accessToken || result.data.jwt || 
+                               result.headers.authorization?.replace(/^Bearer\s+/i, '');
+                    
+                    if (authToken) {
+                        localStorage.setItem('auth_token', authToken);
+                        updateTokenStatus();
+                        setStatus('login', 'Success', true);
+                    } else {
+                        setStatus('login', 'Success but no token found', false);
+                    }
+                } else {
+                    setStatus('login', `Error: ${result.status}`, false);
+                }
+                
+                showResponse('login', result);
+            } catch (error) {
+                setStatus('login', `Error: ${error.message}`, false);
+                showResponse('login', { error: error.message });
+            }
+        }
+
+        async function testMe() {
+            try {
+                const result = await makeRequest('GET', `${BASE_URL}/api/me`, null, true);
+                setStatus('me', result.ok ? 'Success' : `Error: ${result.status}`, result.ok);
+                showResponse('me', result);
+            } catch (error) {
+                setStatus('me', `Error: ${error.message}`, false);
+                showResponse('me', { error: error.message });
+            }
+        }
+
+        async function testHome() {
+            try {
+                const result = await makeRequest('GET', `${BASE_URL}/api/home`, null, true);
+                setStatus('home', result.ok ? 'Success' : `Error: ${result.status}`, result.ok);
+                showResponse('home', result);
+            } catch (error) {
+                setStatus('home', `Error: ${error.message}`, false);
+                showResponse('home', { error: error.message });
+            }
+        }
+
+        async function testSearchIp() {
+            const ip = document.getElementById('searchIp').value;
+            try {
+                const result = await makeRequest('POST', `${BASE_URL}/api/search-ip`, { ip }, true);
+                setStatus('search', result.ok ? 'Success' : `Error: ${result.status}`, result.ok);
+                showResponse('search', result);
+            } catch (error) {
+                setStatus('search', `Error: ${error.message}`, false);
+                showResponse('search', { error: error.message });
+            }
+        }
+
+        async function testClearSearch() {
+            try {
+                const result = await makeRequest('GET', `${BASE_URL}/api/clear-search`, null, true);
+                setStatus('clear', result.ok ? 'Success' : `Error: ${result.status}`, result.ok);
+                showResponse('clear', result);
+            } catch (error) {
+                setStatus('clear', `Error: ${error.message}`, false);
+                showResponse('clear', { error: error.message });
+            }
+        }
+
+        async function testHistory() {
+            try {
+                const result = await makeRequest('GET', `${BASE_URL}/api/history`, null, true);
+                setStatus('history', result.ok ? 'Success' : `Error: ${result.status}`, result.ok);
+                showResponse('history', result);
+            } catch (error) {
+                setStatus('history', `Error: ${error.message}`, false);
+                showResponse('history', { error: error.message });
+            }
+        }
+
+        async function testHistoryItem() {
+            const id = document.getElementById('historyId').value;
+            try {
+                const result = await makeRequest('GET', `${BASE_URL}/api/history/${id}`, null, true);
+                setStatus('history-item', result.ok ? 'Success' : `Error: ${result.status}`, result.ok);
+                showResponse('history-item', result);
+            } catch (error) {
+                setStatus('history-item', `Error: ${error.message}`, false);
+                showResponse('history-item', { error: error.message });
+            }
+        }
+
+        async function testDeleteHistories() {
+            const idsStr = document.getElementById('deleteIds').value;
+            const ids = idsStr.split(',').map(id => id.trim()).filter(id => id);
+            try {
+                const result = await makeRequest('POST', `${BASE_URL}/api/history-delete`, { ids }, true);
+                setStatus('delete', result.ok ? 'Success' : `Error: ${result.status}`, result.ok);
+                showResponse('delete', result);
+            } catch (error) {
+                setStatus('delete', `Error: ${error.message}`, false);
+                showResponse('delete', { error: error.message });
+            }
+        }
+
+        async function testLogout() {
+            try {
+                const result = await makeRequest('POST', `${BASE_URL}/api/logout`, {}, true);
+                setStatus('logout', result.ok ? 'Success' : `Error: ${result.status}`, result.ok);
+                showResponse('logout', result);
+                
+                if (result.ok) {
+                    clearToken();
+                }
+            } catch (error) {
+                setStatus('logout', `Error: ${error.message}`, false);
+                showResponse('logout', { error: error.message });
+            }
+        }
+
+        async function testAllEndpoints() {
+            const statusEl = document.getElementById('overall-status');
+            statusEl.innerHTML = '<p>Testing all endpoints...</p>';
+            
+            // Test login first
+            await testLogin();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Test authenticated endpoints
+            await testMe();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testHome();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testSearchIp();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testHistory();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testClearSearch();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Test history item if we have history
+            await testHistoryItem();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            statusEl.innerHTML = '<p style="color: green;">All tests completed! Check individual results above.</p>';
+        }
+
+        // Initialize
+        updateTokenStatus();
+    </script>
+</body>
+</html>
